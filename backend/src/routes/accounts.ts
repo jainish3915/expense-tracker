@@ -1,0 +1,10 @@
+import { Router } from 'express';
+import { Role, VoucherStatus } from '@prisma/client';
+import { prisma } from '../db';
+import { requireAuth, requireRoles } from '../middleware/auth';
+import { orderBy, parseVoucherQuery, voucherWhere } from '../services/voucherQuery';
+const router = Router();
+const visible = { employee: { select: { id: true, name: true, email: true, employeeId: true, department: true } }, director: { select: { id: true, name: true, email: true, employeeId: true } } } as const;
+router.get('/vouchers', requireAuth, requireRoles(Role.ACCOUNTS), async (req, res, next) => { try { const query = parseVoucherQuery(req.query as Record<string, unknown>); const where = voucherWhere(query); const [data, total] = await Promise.all([prisma.voucher.findMany({ where, include: visible, orderBy: orderBy(query), skip: (query.page - 1) * query.pageSize, take: query.pageSize }), prisma.voucher.count({ where })]); res.json({ data, meta: { page: query.page, pageSize: query.pageSize, total, pageCount: Math.ceil(total / query.pageSize) } }); } catch (e) { next(e); } });
+router.get('/dashboard', requireAuth, requireRoles(Role.ACCOUNTS), async (_req, res, next) => { try { const [total, draft, pending, approved, rejected, approvedAmount, recent] = await Promise.all([prisma.voucher.count(), prisma.voucher.count({ where: { status: VoucherStatus.DRAFT } }), prisma.voucher.count({ where: { status: VoucherStatus.PENDING_APPROVAL } }), prisma.voucher.count({ where: { status: VoucherStatus.APPROVED } }), prisma.voucher.count({ where: { status: VoucherStatus.REJECTED } }), prisma.voucher.aggregate({ where: { status: VoucherStatus.APPROVED }, _sum: { amount: true } }), prisma.voucher.findMany({ where: { status: VoucherStatus.APPROVED }, include: visible, orderBy: { approvalDate: 'desc' }, take: 5 })]); res.json({ data: { total, draft, pending, approved, rejected, approvedAmount: approvedAmount._sum.amount?.toString() ?? '0.00', recent } }); } catch (e) { next(e); } });
+export default router;

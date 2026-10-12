@@ -1,0 +1,8 @@
+import { Prisma, Role, VoucherStatus } from '@prisma/client';
+import { prisma } from '../db';
+
+export const voucherInclude = { employee: { select: { id: true, name: true, email: true, employeeId: true, department: true } }, director: { select: { id: true, name: true, email: true, employeeId: true } } } satisfies Prisma.VoucherInclude;
+export async function nextVoucherNumber(tx: Prisma.TransactionClient) { const sequence = await tx.numberSequence.upsert({ where: { key: 'voucher' }, update: { value: { increment: 1 } }, create: { key: 'voucher', value: 1 } }); return `PV-${new Date().getFullYear()}-${String(sequence.value).padStart(6, '0')}`; }
+export function isCompleteDraft(v: { department: string; expenseTitle: string | null; expenseDate: Date | null; amount: Prisma.Decimal | string | null; expenseCategory: string | null; expenseDescription: string | null; voucherDate: Date | null; employeeSignaturePath: string | null }) { const amount = typeof v.amount === 'string' ? Number(v.amount) : v.amount?.toNumber(); return Boolean(v.department && v.expenseTitle?.trim() && v.expenseDate && v.voucherDate && v.expenseCategory?.trim() && v.expenseDescription?.trim() && amount && amount > 0 && v.employeeSignaturePath); }
+export async function addAudit(tx: Prisma.TransactionClient, voucherId: string, actorId: string, action: string, previousStatus?: VoucherStatus, newStatus?: VoucherStatus, metadata?: Prisma.InputJsonValue) { await tx.voucherAuditLog.create({ data: { voucherId, actorId, action, previousStatus, newStatus, metadata } }); }
+export const canSee = (role: Role, userId: string, voucher: { employeeId: string }) => role !== Role.EMPLOYEE || voucher.employeeId === userId;

@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url = env("DATABASE_URL")
+}
+
+enum Role {
+  EMPLOYEE
+  DIRECTOR
+  ACCOUNTS
+}
+
+enum VoucherStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id String @id @default(uuid())
+  name String
+  email String @unique
+  passwordHash String
+  role Role
+  department String
+  employeeId String? @unique
+  isActive Boolean @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  vouchers Voucher[] @relation("EmployeeVouchers")
+  directedVouchers Voucher[] @relation("DirectorVouchers")
+  auditLogs VoucherAuditLog[]
+  deletionAudits VoucherDeletionAudit[]
+}
+
+model Voucher {
+  id String @id @default(uuid())
+  voucherNumber String @unique
+  voucherDate DateTime?
+  expenseDate DateTime?
+  department String
+  expenseTitle String?
+  expenseCategory String?
+  expenseDescription String?
+  amount Decimal? @db.Decimal(12,2)
+  currency String @default("INR")
+  employeeId String
+  employee User @relation("EmployeeVouchers", fields: [employeeId], references: [id])
+  employeeSignaturePath String?
+  status VoucherStatus @default(DRAFT)
+  directorId String?
+  director User? @relation("DirectorVouchers", fields: [directorId], references: [id])
+  directorSignaturePath String?
+  submittedAt DateTime?
+  approvalDate DateTime?
+  rejectionReason String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  auditLogs VoucherAuditLog[]
+  @@index([employeeId, status])
+  @@index([department, expenseDate])
+  @@index([status, createdAt])
+}
+
+model VoucherAuditLog {
+  id String @id @default(uuid())
+  voucherId String
+  voucher Voucher @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+  actorId String
+  actor User @relation(fields: [actorId], references: [id])
+  action String
+  previousStatus VoucherStatus?
+  newStatus VoucherStatus?
+  createdAt DateTime @default(now())
+  metadata Json?
+  @@index([voucherId, createdAt])
+}
+
+model NumberSequence {
+  key String @id
+  value Int @default(0)
+}
+
+model VoucherDeletionAudit {
+  id String @id @default(uuid())
+  voucherId String
+  voucherNumber String
+  actorId String
+  action String
+  createdAt DateTime @default(now())
+  metadata Json?
+  actor User @relation(fields: [actorId], references: [id])
+  @@index([voucherId, createdAt])
+}

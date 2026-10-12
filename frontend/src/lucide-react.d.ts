@@ -1,0 +1,32 @@
+declare module 'lucide-react' {
+  export const ArrowLeft: any;
+  export const ArrowRight: any;
+  export const Activity: any;
+  export const AlertCircle: any;
+  export const Bell: any;
+  export const CalendarDays: any;
+  export const ChevronLeft: any;
+  export const ChevronRight: any;
+  export const CheckCircle2: any;
+  export const Clock3: any;
+  export const Eye: any;
+  export const FileCheck2: any;
+  export const FileText: any;
+  export const FileQuestion: any;
+  export const Filter: any;
+  export const LayoutDashboard: any;
+  export const LogOut: any;
+  export const Menu: any;
+  export const Pencil: any;
+  export const Plus: any;
+  export const Search: any;
+  export const Send: any;
+  export const ShieldCheck: any;
+  export const SlidersHorizontal: any;
+  export const Trash2: any;
+  export const Upload: any;
+  export const UserRound: any;
+  export const UsersRound: any;
+  export const X: any;
+  export const XCircle: any;
+}
