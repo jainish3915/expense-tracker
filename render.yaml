@@ -1,6 +1,7 @@
 services:
   - type: web
     name: expense-tracker-api
+    plan: free
     runtime: node
     rootDir: backend
     buildCommand: npm install && npm run prisma:generate && npm run build && npx prisma migrate deploy && npm run prisma:seed
