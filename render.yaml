@@ -1,7 +1,7 @@
 databases:
   - name: expense-tracker-db
     databaseName: expense_voucher
-    user: expense_tracker
+    user: expensetracker
 
 services:
   - type: web
