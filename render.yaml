@@ -1,7 +1,7 @@
 databases:
   - name: expense-tracker-db
     databaseName: expense_voucher
-    user: postgres
+    user: expense_tracker
 
 services:
   - type: web
