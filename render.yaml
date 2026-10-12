@@ -1,8 +1,3 @@
-databases:
-  - name: expense-tracker-db
-    databaseName: expense_voucher
-    user: expensetracker
-
 services:
   - type: web
     name: expense-tracker-api
@@ -13,9 +8,7 @@ services:
     healthCheckPath: /health
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: expense-tracker-db
-          property: connectionString
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: COOKIE_SECRET
